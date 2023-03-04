@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style rel="stylesheet">
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-gap: 1rem;
+        }
+
+        .card {
+            display: flex;
+            flex-direction: column;
+            background-color: #f5f5f5;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+        }
+
+        .card img {
+            width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .card p {
+            margin: 0.25rem 0;
+        }
+
+        @media (max-width: 767px) {
+            .grid-container {
+                grid-template-columns: repeat(auto-fit, minmax(100%, 1fr));
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+    <div id="datos"></div>
+    <button id="exportar">Esportar</button>
+
+    <input type="file" id="archivo">
+    <button id="importar">Importar</button>
+
+    <div id="container" class="grid-container"></div>
+
+    <script type="module" rel="javascript">
+        
+        import Database from './db.js';
+
+        // Crear una instancia de la base de datos
+        const db = new Database();
+
+        // Datos de inicio
+        let dato = { nombre: "Juan", telefono: "234 234 234", imagen: "http://placeimg.com/512/512/people", email: "juan@gmail.com", ciudad: "La Coruña" }
+
+        // Comprobamos si existe
+        if (!db.verificarExistencia(dato)) {
+            db.agregar(dato);
+        }
+
+        // Leemos y creamos la plantilla html
+        const html = db.leer().map((obj) => `
+            <div class="card">
+                <img src="${obj.imagen}" alt="${obj.nombre}">
+                <h2>${obj.nombre}</h2>
+                <p>${obj.trabajo}</p>
+                <p>${obj.telefono}</p>
+                <p>${obj.email}</p>
+                <p>${obj.ciudad}</p>
+            </div>
+        `).join('');
+
+        // Imprimimos en el container
+        document.querySelector('#datos').innerHTML = `Total usuarios ${db.estadisticas().numRegistros}`
+        document.querySelector('#container').innerHTML = html;
+
+        // Exportamos los datos a un archivo JSON
+        document.querySelector('#exportar').addEventListener('click', evt => {
+            evt.preventDefault()
+            db.exportarAJSON('usuarios.json')
+        })
+
+        //Importamos nuevos datos desde un archivo JSON
+        const btnImportar = document.getElementById('importar');
+        btnImportar.addEventListener('click', () => {
+            const archivo = document.getElementById('archivo').files[0];
+            db.importarDesdeJSON(archivo)
+        });
+    </script>
+</body>
+
+</html>
